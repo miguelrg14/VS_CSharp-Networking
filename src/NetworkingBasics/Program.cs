@@ -8,8 +8,6 @@ public static class Program
 {
     private static readonly (string Title, Action Run)[] Items =
     [
-        ("Warm-up: add numbers until you type 'sum'", TextExercises.RunSum),
-        ("Warm-up: find the second-to-last word", TextExercises.RunSecondToLastWord),
         ("Threads: three workers running at the same time", ThreadExercises.RunParallelWorkers),
         ("Threads: one greeter thread per name you type", ThreadExercises.RunGreeters),
         ("Sockets: echo server with shared history (raw Socket API)", EchoDemo.Run),

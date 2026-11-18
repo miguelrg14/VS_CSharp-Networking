@@ -5,46 +5,6 @@ using NetworkingBasics.Exercises;
 
 namespace NetworkingBasics.Tests;
 
-public class TextExercisesTests
-{
-    [Theory]
-    [InlineData("I am in the networks class and a bit bored", "bit")]
-    [InlineData("  spaces   everywhere  ", "spaces")]
-    [InlineData("tab\tseparated\twords", "separated")]
-    [InlineData("two words", "two")]
-    public void SecondToLastWord_IgnoresExtraWhitespace(string sentence, string expected)
-    {
-        Assert.Equal(expected, TextExercises.SecondToLastWord(sentence));
-    }
-
-    [Theory]
-    [InlineData("")]
-    [InlineData("single")]
-    [InlineData("   ")]
-    public void SecondToLastWord_NeedsTwoWords(string sentence)
-    {
-        Assert.Null(TextExercises.SecondToLastWord(sentence));
-    }
-
-    [Theory]
-    [InlineData("42", 42L)]
-    [InlineData(" -7 ", -7L)]
-    public void TryParseNumber_AcceptsWholeNumbers(string text, long expected)
-    {
-        Assert.True(TextExercises.TryParseNumber(text, out long number));
-        Assert.Equal(expected, number);
-    }
-
-    [Theory]
-    [InlineData("abc")]
-    [InlineData("1.5")]
-    [InlineData("")]
-    public void TryParseNumber_RejectsEverythingElse(string text)
-    {
-        Assert.False(TextExercises.TryParseNumber(text, out _));
-    }
-}
-
 public class ThreadExercisesTests
 {
     [Fact]
@@ -69,10 +29,30 @@ public class ThreadExercisesTests
     }
 
     [Fact]
+    public void Greeter_EndsByItselfAfterItsGreetings()
+    {
+        var lines = new List<string>();
+        using var pool = new GreeterPool(TimeSpan.FromMilliseconds(10), greetings: 3, line =>
+        {
+            lock (lines)
+            {
+                lines.Add(line);
+            }
+        });
+
+        pool.Start("Ana");
+        SpinWait.SpinUntil(() => pool.RunningCount == 0, TimeSpan.FromSeconds(5));
+
+        Assert.Equal(0, pool.RunningCount);
+        Assert.Equal(3, lines.Count(l => l.Contains("Hello, Ana!")));
+        Assert.Contains("[Ana's thread] Done, this thread ends now.", lines);
+    }
+
+    [Fact]
     public void GreeterPool_StopsEveryThreadAtOnce()
     {
         var lines = new List<string>();
-        var pool = new GreeterPool(TimeSpan.FromHours(1), line =>
+        var pool = new GreeterPool(TimeSpan.FromHours(1), greetings: 3, line =>
         {
             lock (lines)
             {
@@ -89,8 +69,8 @@ public class ThreadExercisesTests
         // Stopping does not wait for the one-hour interval.
         Assert.True(stopwatch.Elapsed < TimeSpan.FromSeconds(5));
         Assert.Equal(2, pool.StartedCount);
-        Assert.Contains("Hello, Ana!", lines);
-        Assert.Contains("Hello, Ben!", lines);
+        Assert.Contains("[Ana's thread] Hello, Ana! (1/3)", lines);
+        Assert.Contains("[Ben's thread] Hello, Ben! (1/3)", lines);
     }
 }
 

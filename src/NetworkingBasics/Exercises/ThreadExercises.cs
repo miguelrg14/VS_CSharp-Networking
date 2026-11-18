@@ -14,18 +14,20 @@ public static class ThreadExercises
 
     public static void RunGreeters()
     {
-        Console.WriteLine("Type names: each one starts its own thread that greets every 2 seconds. Type \"exit\" to stop them all.");
-        using var greeters = new GreeterPool(TimeSpan.FromSeconds(2), Console.WriteLine);
-        while (Console.ReadLine() is string name && !name.Trim().Equals("exit", StringComparison.OrdinalIgnoreCase))
+        Console.WriteLine(
+            $"Type a name and press Enter: it starts its own thread, which greets {GreeterPool.DefaultGreetings} times " +
+            "(one every 2 seconds) and then ends.");
+        Console.WriteLine("Keep typing names while the others are still running. An empty line finishes.");
+
+        using var greeters = new GreeterPool(TimeSpan.FromSeconds(2), GreeterPool.DefaultGreetings, line => Console.WriteLine($"    {line}"));
+        while (Console.ReadLine() is string name && !string.IsNullOrWhiteSpace(name))
         {
-            if (!string.IsNullOrWhiteSpace(name))
-            {
-                greeters.Start(name.Trim());
-            }
+            greeters.Start(name.Trim());
         }
 
+        int stillRunning = greeters.RunningCount;
         greeters.StopAll();
-        Console.WriteLine($"Stopped {greeters.StartedCount} greeter thread(s).");
+        Console.WriteLine($"Threads started: {greeters.StartedCount}. Stopped early because they were still running: {stillRunning}.");
     }
 
     public sealed record Worker(string Name, int Steps, int DelayMs);
@@ -66,27 +68,38 @@ public static class ThreadExercises
 }
 
 /// <summary>
-/// One background thread per name. They all watch the same CancellationToken, so a single call
-/// stops every one of them (a loop that checks a variable that never changes would run forever).
+/// One background thread per name. Each thread greets a fixed number of times and ends by itself,
+/// so the console never fills up endlessly. They all watch the same CancellationToken, so a single call
+/// stops the ones still running (a loop that checks a variable that never changes would run forever).
 /// </summary>
-public sealed class GreeterPool(TimeSpan interval, Action<string> output) : IDisposable
+public sealed class GreeterPool(TimeSpan interval, int greetings, Action<string> output) : IDisposable
 {
+    public const int DefaultGreetings = 3;
+
     private readonly CancellationTokenSource _stop = new();
     private readonly List<Thread> _threads = [];
 
     public int StartedCount => _threads.Count;
+
+    public int RunningCount => _threads.Count(t => t.IsAlive);
 
     public void Start(string name)
     {
         CancellationToken token = _stop.Token;
         var thread = new Thread(() =>
         {
-            // WaitOne returns true as soon as the token is cancelled, so stopping does not wait for the interval.
-            do
+            for (int i = 1; i <= greetings; i++)
             {
-                output($"Hello, {name}!");
+                output($"[{name}'s thread] Hello, {name}! ({i}/{greetings})");
+
+                // WaitOne returns true as soon as the token is cancelled, so stopping does not wait for the interval.
+                if (i < greetings && token.WaitHandle.WaitOne(interval))
+                {
+                    return;
+                }
             }
-            while (!token.WaitHandle.WaitOne(interval));
+
+            output($"[{name}'s thread] Done, this thread ends now.");
         })
         {
             IsBackground = true, // A background thread never keeps the app alive on its own.

@@ -1,6 +1,6 @@
 # C# Networking: TCP Group Chat
 
-[![Build & Test](https://github.com/miguelrg14/VS_Network-and-Communications_Examples/actions/workflows/dotnet.yml/badge.svg)](https://github.com/miguelrg14/VS_Network-and-Communications_Examples/actions/workflows/dotnet.yml)
+[![Build & Test](https://github.com/miguelrg14/VS_CSharp-Networking/actions/workflows/dotnet.yml/badge.svg)](https://github.com/miguelrg14/VS_CSharp-Networking/actions/workflows/dotnet.yml)
 
 Coursework from the Networks and Communications subject of my Computer Science & Video Game Engineering degree
 at ESNE, refactored into a single .NET 10 solution: a multi-client **TCP group chat** (server and client), plus the
@@ -38,13 +38,13 @@ hola a todos                          --- last 2 messages ---
 | [`src/Chat.Core`](src/Chat.Core) | Class library | The protocol, the thread-safe chat room and history, the async `TcpListener` server and the client |
 | [`src/Chat.Server`](src/Chat.Server) | Console app | Runs the server: `Chat.Server [port]` (default 12000), stops cleanly with Ctrl+C |
 | [`src/Chat.Client`](src/Chat.Client) | Console app | Connects to it: `Chat.Client [host] [port]` (default localhost 12000) |
-| [`src/NetworkingBasics`](src/NetworkingBasics) | Console app | The steps before the chat, in course order: warm-up exercises, threads running in parallel, one thread per input stopped with a `CancellationToken`, and an echo server written with the raw `Socket` API (`Bind`, `Listen`, `Accept`, `Receive`, `Send`) |
+| [`src/NetworkingBasics`](src/NetworkingBasics) | Console app | The steps before the chat, in course order: threads running in parallel, one short-lived thread per name you type (stopped early with a `CancellationToken`), and an echo server written with the raw `Socket` API (`Bind`, `Listen`, `Accept`, `Receive`, `Send`) |
 | [`tests/*`](tests) | xUnit | Unit tests plus end-to-end tests that start a real server on a free port and connect real clients |
 
 ## Download
 
 Ready-to-run builds for Windows, Linux and macOS are on the
-[Releases page](https://github.com/miguelrg14/VS_Network-and-Communications_Examples/releases/latest).
+[Releases page](https://github.com/miguelrg14/VS_CSharp-Networking/releases/latest).
 Extract the archive, start `Chat.Server`, then open `Chat.Client` in two or more terminals. To chat between computers
 on the same network, run `Chat.Client <server-ip>` (the server's firewall must allow port 12000).
 No .NET installation is needed. On macOS the apps are not signed: the first time, right-click the file and choose *Open*.
@@ -54,8 +54,8 @@ No .NET installation is needed. On macOS the apps are not signed: the first time
 Requires the [.NET 10 SDK](https://dotnet.microsoft.com/download).
 
 ```bash
-git clone https://github.com/miguelrg14/VS_Network-and-Communications_Examples.git
-cd VS_Network-and-Communications_Examples
+git clone https://github.com/miguelrg14/VS_CSharp-Networking.git
+cd VS_CSharp-Networking
 
 dotnet run --project src/Chat.Server          # terminal 1
 dotnet run --project src/Chat.Client          # terminals 2, 3...
