@@ -10,7 +10,7 @@ public static class Program
 {
     public const string DefaultDatabase = "chat-history.db";
 
-    private const string Usage =
+    private static readonly string Usage =
         "Usage: Chat.Server [port] [--db <file> | --no-db]\n" +
         $"  port      1-65535, default {ChatProtocol.DefaultPort}\n" +
         $"  --db      SQLite file for the history, default {DefaultDatabase}\n" +
