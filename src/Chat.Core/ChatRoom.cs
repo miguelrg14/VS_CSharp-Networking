@@ -17,13 +17,16 @@ public sealed class ChatRoom
 {
     private readonly Dictionary<string, IChatMember> _members = new(StringComparer.OrdinalIgnoreCase);
     private readonly Lock _gate = new();
+    private readonly TimeProvider _clock;
 
-    public ChatRoom(ChatHistory? history = null)
+    /// <param name="store">Where messages are kept. Defaults to memory; the server can pass a SQLite store.</param>
+    public ChatRoom(IMessageStore? store = null, TimeProvider? clock = null)
     {
-        History = history ?? new ChatHistory();
+        Store = store ?? new InMemoryMessageStore();
+        _clock = clock ?? TimeProvider.System;
     }
 
-    public ChatHistory History { get; }
+    public IMessageStore Store { get; }
 
     public IReadOnlyList<string> Nicknames
     {
@@ -70,17 +73,17 @@ public sealed class ChatRoom
     /// <summary>Records a message from <paramref name="sender"/> and delivers it to everyone else.</summary>
     public Task SendMessageAsync(IChatMember sender, string text, CancellationToken cancellationToken = default)
     {
-        string line = $"{sender.Nickname}: {ChatProtocol.Sanitize(text)}";
-        History.Add(line);
-        return BroadcastAsync(line, except: sender, cancellationToken);
+        var message = new ChatMessage(_clock.GetUtcNow(), sender.Nickname, ChatProtocol.Sanitize(text));
+        Store.Add(message);
+        return BroadcastAsync(message.ToString(), except: sender, cancellationToken);
     }
 
-    /// <summary>A server notice (someone joined or left). It goes to the history too.</summary>
+    /// <summary>A server notice (someone joined or left). It is stored too, so the history shows it.</summary>
     public Task AnnounceAsync(string notice, IChatMember? except = null, CancellationToken cancellationToken = default)
     {
-        string line = $"* {notice} *";
-        History.Add(line);
-        return BroadcastAsync(line, except, cancellationToken);
+        var message = new ChatMessage(_clock.GetUtcNow(), Author: null, notice);
+        Store.Add(message);
+        return BroadcastAsync(message.ToString(), except, cancellationToken);
     }
 
     private async Task BroadcastAsync(string line, IChatMember? except, CancellationToken cancellationToken)

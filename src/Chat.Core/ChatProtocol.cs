@@ -13,15 +13,21 @@ public static class ChatProtocol
     public const int MaxNicknameLength = 20;
     public const int MaxMessageLength = 500;
 
+    /// <summary>How many messages new members receive, and how many /history and /search show.</summary>
+    public const int HistorySize = 20;
+
     public const string QuitCommand = "/quit";
     public const string HistoryCommand = "/history";
     public const string WhoCommand = "/who";
     public const string HelpCommand = "/help";
+    public const string SearchCommand = "/search";
+    public const string StatsCommand = "/stats";
 
     public const string NicknamePrompt = "Welcome! Choose a nickname:";
 
     public static readonly string HelpText =
-        $"Commands: {WhoCommand} (who is online), {HistoryCommand} (recent messages), {QuitCommand} (leave), {HelpCommand}";
+        $"Commands: {WhoCommand} (who is online), {HistoryCommand} (recent messages), {SearchCommand} <text>, " +
+        $"{StatsCommand} (most active users), {QuitCommand} (leave), {HelpCommand}";
 
     /// <summary>UTF-8 without a byte order mark, so accents and emoji arrive intact on every OS.</summary>
     public static readonly Encoding Encoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);

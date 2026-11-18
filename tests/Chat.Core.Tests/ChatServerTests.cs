@@ -107,6 +107,33 @@ public sealed class ChatServerTests : IAsyncLifetime
         await WaitFor(ben, "Online: ana, ben");
     }
 
+    [Fact]
+    public async Task Search_FindsOldMessages_AndStatsCountThem()
+    {
+        await using ChatClient ana = await Join("ana");
+        await ana.SendAsync("the boss is on level 3");
+        await ana.SendAsync("anyone online?");
+        await ana.SendAsync("level 4 is harder");
+
+        await ana.SendAsync($"{ChatProtocol.SearchCommand} LEVEL");
+        await WaitFor(ana, "--- 2 messages containing \"LEVEL\" ---");
+        await WaitFor(ana, "ana: the boss is on level 3");
+        await WaitFor(ana, "ana: level 4 is harder");
+
+        await ana.SendAsync(ChatProtocol.StatsCommand);
+        await WaitFor(ana, "Most active: ana (3)");
+    }
+
+    [Fact]
+    public async Task Search_WithBracesOrPercentSigns_IsJustText()
+    {
+        await using ChatClient ana = await Join("ana");
+
+        await ana.SendAsync($"{ChatProtocol.SearchCommand} {{0}} 100%");
+
+        await WaitFor(ana, "No messages contain \"{0} 100%\".");
+    }
+
     /// <summary>Connects, sends the nickname and (by default) reads past the welcome lines.</summary>
     private async Task<ChatClient> Join(string nickname, bool skipWelcome = true)
     {
@@ -132,7 +159,8 @@ public sealed class ChatServerTests : IAsyncLifetime
         while (!timeout.IsCancellationRequested)
         {
             string line = await NextLine(client);
-            if (line == expected)
+            // History lines start with the time ("[14:05] ana: hi"), so only the end is compared.
+            if (line == expected || line.EndsWith($"] {expected}", StringComparison.Ordinal))
             {
                 return;
             }

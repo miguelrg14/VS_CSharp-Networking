@@ -25,32 +25,6 @@ public class ChatProtocolTests
     }
 }
 
-public class ChatHistoryTests
-{
-    [Fact]
-    public void History_KeepsOnlyTheLastMessages()
-    {
-        var history = new ChatHistory(capacity: 3);
-        foreach (string message in new[] { "a", "b", "c", "d" })
-        {
-            history.Add(message);
-        }
-
-        Assert.Equal(new[] { "b", "c", "d" }, history.Snapshot());
-    }
-
-    [Fact]
-    public void History_IsSafeToUseFromManyThreads()
-    {
-        var history = new ChatHistory(capacity: 10_000);
-
-        Parallel.For(0, 5_000, i => history.Add($"message {i}"));
-
-        Assert.Equal(5_000, history.Count);
-        Assert.Equal(5_000, history.Snapshot().Distinct().Count());
-    }
-}
-
 public class ChatRoomTests
 {
     private sealed class FakeMember(string nickname) : IChatMember
@@ -106,7 +80,7 @@ public class ChatRoomTests
         Assert.Empty(ana.Received);
         Assert.Equal(new[] { "ana: hello" }, ben.Received);
         Assert.Equal(new[] { "ana: hello" }, cris.Received);
-        Assert.Equal(new[] { "ana: hello" }, room.History.Snapshot());
+        Assert.Equal(new[] { "ana: hello" }, room.Store.Recent(10).Select(m => m.ToString()));
     }
 
     [Fact]

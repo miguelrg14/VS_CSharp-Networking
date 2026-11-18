@@ -142,19 +142,38 @@ public sealed class ChatServer : IAsyncDisposable
         await SendHistoryAsync(member, cancellationToken).ConfigureAwait(false);
     }
 
-    private async Task SendHistoryAsync(TcpMember member, CancellationToken cancellationToken)
+    private Task SendHistoryAsync(TcpMember member, CancellationToken cancellationToken) =>
+        SendListAsync(member, Room.Store.Recent(ChatProtocol.HistorySize), count => $"last {count} messages", "(no messages yet)", cancellationToken);
+
+    private Task SendSearchAsync(TcpMember member, string text, CancellationToken cancellationToken) =>
+        text.Length == 0
+            ? member.SendAsync($"Usage: {ChatProtocol.SearchCommand} <text>", cancellationToken)
+            : SendListAsync(member, Room.Store.Search(text, ChatProtocol.HistorySize), count => $"{count} messages containing \"{text}\"", $"No messages contain \"{text}\".", cancellationToken);
+
+    private async Task SendStatsAsync(TcpMember member, CancellationToken cancellationToken)
     {
-        IReadOnlyList<string> history = Room.History.Snapshot();
-        if (history.Count == 0)
+        IReadOnlyList<AuthorStats> stats = Room.Store.MessagesPerAuthor(limit: 10);
+        await member.SendAsync(
+            stats.Count == 0
+                ? "Nobody has written anything yet."
+                : $"Most active: {string.Join(", ", stats.Select(s => $"{s.Author} ({s.Messages})"))}",
+            cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>Sends a header with the count, the messages with their time, and a closing line.</summary>
+    private static async Task SendListAsync(
+        TcpMember member, IReadOnlyList<ChatMessage> messages, Func<int, string> header, string emptyText, CancellationToken cancellationToken)
+    {
+        if (messages.Count == 0)
         {
-            await member.SendAsync("(no messages yet)", cancellationToken).ConfigureAwait(false);
+            await member.SendAsync(emptyText, cancellationToken).ConfigureAwait(false);
             return;
         }
 
-        await member.SendAsync($"--- last {history.Count} messages ---", cancellationToken).ConfigureAwait(false);
-        foreach (string line in history)
+        await member.SendAsync($"--- {header(messages.Count)} ---", cancellationToken).ConfigureAwait(false);
+        foreach (ChatMessage message in messages)
         {
-            await member.SendAsync(line, cancellationToken).ConfigureAwait(false);
+            await member.SendAsync($"[{message.SentAt.ToLocalTime():HH:mm}] {message}", cancellationToken).ConfigureAwait(false);
         }
 
         await member.SendAsync("---", cancellationToken).ConfigureAwait(false);
@@ -180,6 +199,12 @@ public sealed class ChatServer : IAsyncDisposable
                     break;
                 case ChatProtocol.HelpCommand:
                     await member.SendAsync(ChatProtocol.HelpText, cancellationToken).ConfigureAwait(false);
+                    break;
+                case ChatProtocol.StatsCommand:
+                    await SendStatsAsync(member, cancellationToken).ConfigureAwait(false);
+                    break;
+                case var command when command == ChatProtocol.SearchCommand || command.StartsWith(ChatProtocol.SearchCommand + " ", StringComparison.Ordinal):
+                    await SendSearchAsync(member, text[ChatProtocol.SearchCommand.Length..].Trim(), cancellationToken).ConfigureAwait(false);
                     break;
                 default:
                     _log($"{member.Nickname}: {text}");
