@@ -1,0 +1,64 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{030C5C0B-C243-49CF-8A51-83A092F61781}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Chat.Client", "src\Chat.Client\Chat.Client.csproj", "{0B73092B-A9F4-41EF-BA7A-56AF12D7FD65}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Chat.Core", "src\Chat.Core\Chat.Core.csproj", "{57EBD085-3E03-4046-A526-E5861033D7A5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Chat.Server", "src\Chat.Server\Chat.Server.csproj", "{7CA3D53E-157B-4439-B49F-B1DA77DD7DAC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetworkingBasics", "src\NetworkingBasics\NetworkingBasics.csproj", "{791A7F75-2B3A-4872-B83D-1656C9A952A7}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{D2C392D5-DC51-422E-89D7-134B0B380A54}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Chat.Core.Tests", "tests\Chat.Core.Tests\Chat.Core.Tests.csproj", "{43F2B7EB-701B-411C-8F2C-8F6D1E7864ED}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetworkingBasics.Tests", "tests\NetworkingBasics.Tests\NetworkingBasics.Tests.csproj", "{93ED6365-BF69-48F2-97EF-9DDD47703B07}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{0B73092B-A9F4-41EF-BA7A-56AF12D7FD65}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0B73092B-A9F4-41EF-BA7A-56AF12D7FD65}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0B73092B-A9F4-41EF-BA7A-56AF12D7FD65}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0B73092B-A9F4-41EF-BA7A-56AF12D7FD65}.Release|Any CPU.Build.0 = Release|Any CPU
+		{57EBD085-3E03-4046-A526-E5861033D7A5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{57EBD085-3E03-4046-A526-E5861033D7A5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{57EBD085-3E03-4046-A526-E5861033D7A5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{57EBD085-3E03-4046-A526-E5861033D7A5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7CA3D53E-157B-4439-B49F-B1DA77DD7DAC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7CA3D53E-157B-4439-B49F-B1DA77DD7DAC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7CA3D53E-157B-4439-B49F-B1DA77DD7DAC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7CA3D53E-157B-4439-B49F-B1DA77DD7DAC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{791A7F75-2B3A-4872-B83D-1656C9A952A7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{791A7F75-2B3A-4872-B83D-1656C9A952A7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{791A7F75-2B3A-4872-B83D-1656C9A952A7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{791A7F75-2B3A-4872-B83D-1656C9A952A7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{43F2B7EB-701B-411C-8F2C-8F6D1E7864ED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{43F2B7EB-701B-411C-8F2C-8F6D1E7864ED}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{43F2B7EB-701B-411C-8F2C-8F6D1E7864ED}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{43F2B7EB-701B-411C-8F2C-8F6D1E7864ED}.Release|Any CPU.Build.0 = Release|Any CPU
+		{93ED6365-BF69-48F2-97EF-9DDD47703B07}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{93ED6365-BF69-48F2-97EF-9DDD47703B07}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{93ED6365-BF69-48F2-97EF-9DDD47703B07}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{93ED6365-BF69-48F2-97EF-9DDD47703B07}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{0B73092B-A9F4-41EF-BA7A-56AF12D7FD65} = {030C5C0B-C243-49CF-8A51-83A092F61781}
+		{57EBD085-3E03-4046-A526-E5861033D7A5} = {030C5C0B-C243-49CF-8A51-83A092F61781}
+		{7CA3D53E-157B-4439-B49F-B1DA77DD7DAC} = {030C5C0B-C243-49CF-8A51-83A092F61781}
+		{791A7F75-2B3A-4872-B83D-1656C9A952A7} = {030C5C0B-C243-49CF-8A51-83A092F61781}
+		{43F2B7EB-701B-411C-8F2C-8F6D1E7864ED} = {D2C392D5-DC51-422E-89D7-134B0B380A54}
+		{93ED6365-BF69-48F2-97EF-9DDD47703B07} = {D2C392D5-DC51-422E-89D7-134B0B380A54}
+	EndGlobalSection
+EndGlobal

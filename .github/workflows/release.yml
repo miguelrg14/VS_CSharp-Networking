@@ -1,0 +1,100 @@
+name: Release
+
+# Push a version tag (for example: git tag v1.0.0 && git push origin v1.0.0)
+# and this workflow builds ready-to-run executables for Windows, Linux and macOS
+# and publishes them on the Releases page.
+on:
+  push:
+    tags:
+      - "v*"
+    branches:
+      - restructure # TEMPORARY: verifies the build; removed before merging.
+
+permissions:
+  contents: write # Needed to create the release.
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        runtime: [win-x64, linux-x64, osx-arm64]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Test
+        run: dotnet test --configuration Release
+
+      # Self-contained: .NET is bundled, so nothing needs to be installed.
+      # Single file + trimmed + compressed: one small executable per app.
+      - name: Publish
+        run: |
+          for project in Chat.Server Chat.Client NetworkingBasics; do
+            dotnet publish "src/$project/$project.csproj" \
+              --configuration Release \
+              --runtime ${{ matrix.runtime }} \
+              --self-contained true \
+              -p:PublishSingleFile=true \
+              -p:PublishTrimmed=true \
+              -p:EnableCompressionInSingleFile=true \
+              -p:DebugType=None \
+              --output publish
+          done
+          cp README.md LICENSE publish/
+
+      # Trimming removes code the compiler thinks is unused, so the real executables are run once:
+      # a server and two clients that chat with each other.
+      - name: Smoke test the published chat
+        if: matrix.runtime == 'linux-x64'
+        working-directory: publish
+        run: |
+          ./Chat.Server 12999 > server.txt &
+          server_pid=$!
+          sleep 2
+          (echo ana; sleep 2; echo "hello from ana"; sleep 2; echo /quit) | ./Chat.Client localhost 12999 > ana.txt &
+          sleep 1
+          (echo ben; sleep 4; echo /quit) | ./Chat.Client localhost 12999 > ben.txt
+          sleep 2
+          kill $server_pid || true
+          cat server.txt ben.txt
+          grep -q "ana: hello from ana" ben.txt
+          printf '0\n' | ./NetworkingBasics > /dev/null
+          rm -f server.txt ana.txt ben.txt
+
+      - name: Package
+        run: |
+          name="Networking-${{ matrix.runtime }}"
+          if [[ "${{ matrix.runtime }}" == win-* ]]; then
+            (cd publish && zip -r "../$name.zip" .)
+          else
+            # tar keeps the executable permission that zip would lose.
+            tar -czf "$name.tar.gz" -C publish .
+          fi
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Networking-${{ matrix.runtime }}
+          path: Networking-*.*
+
+  release:
+    needs: publish
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: assets
+          merge-multiple: true
+
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >
+          gh release create ${{ github.ref_name }} assets/*
+          --repo ${{ github.repository }}
+          --title "C# Networking ${{ github.ref_name }}"
+          --notes "Download the archive for your system and extract it. Start Chat.Server, then open Chat.Client in two or more terminals (Chat.Client <host> <port> to connect to another computer). NetworkingBasics contains the exercises that led to the chat. No installation needed. On macOS, the first time, right-click the file and choose Open (the apps are not signed)."
+          --generate-notes
