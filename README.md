@@ -3,8 +3,9 @@
 [![Build & Test](https://github.com/miguelrg14/VS_CSharp-Networking/actions/workflows/dotnet.yml/badge.svg)](https://github.com/miguelrg14/VS_CSharp-Networking/actions/workflows/dotnet.yml)
 
 Coursework from the Networks and Communications subject of my Computer Science & Video Game Engineering degree
-at ESNE, refactored into a single .NET 10 solution: a multi-client **TCP group chat** (server and client), plus the
-exercises that led to it: threads, a raw-socket echo server and shared state protected with locks.
+at ESNE, refactored into a single .NET 10 solution: a multi-client **TCP group chat** (server and client) whose
+history is stored in a **SQLite** database, plus the exercises that led to it: threads, a raw-socket echo server
+and shared state protected with locks.
 Everything is covered by unit and end-to-end tests that run on every push.
 
 Part 3 of my university C# work. Also see
@@ -27,8 +28,12 @@ hola a todos                          --- last 2 messages ---
 
 - **Any number of clients**: each connection is served by its own asynchronous task, so a slow client never blocks the rest.
 - **Nicknames** are validated and unique (case-insensitive); a taken one is rejected and the client can try again.
-- **History**: new members receive the last messages, like opening a group in a messaging app; `/history` shows them again.
-- **Commands**: `/who` (who is online), `/history`, `/help`, `/quit`. Joins and departures are announced to everyone.
+- **History in SQLite**: every message is saved in `chat-history.db`, so the conversation survives server restarts.
+  New members receive the last messages, like opening a group in a messaging app; `/history` shows them again.
+- **Search and statistics** run as SQL queries: `/search <text>` finds old messages and `/stats` lists the most
+  active users (`GROUP BY` + `COUNT`).
+- **Commands**: `/who` (who is online), `/history`, `/search <text>`, `/stats`, `/help`, `/quit`. Joins and departures
+  are announced to everyone.
 - **Robust**: abrupt disconnections are detected and announced, and one broken connection never stops a broadcast.
 
 ## Projects
@@ -36,7 +41,8 @@ hola a todos                          --- last 2 messages ---
 | Project | Type | What it shows |
 | --- | --- | --- |
 | [`src/Chat.Core`](src/Chat.Core) | Class library | The protocol, the thread-safe chat room and history, the async `TcpListener` server and the client |
-| [`src/Chat.Server`](src/Chat.Server) | Console app | Runs the server: `Chat.Server [port]` (default 12000), stops cleanly with Ctrl+C |
+| [`src/Chat.Storage.Sqlite`](src/Chat.Storage.Sqlite) | Class library | `SqliteMessageStore`: schema creation and versioning, parameterized queries, search and statistics with Microsoft.Data.Sqlite |
+| [`src/Chat.Server`](src/Chat.Server) | Console app | Runs the server: `Chat.Server [port] [--db <file> \| --no-db]` (default port 12000, database `chat-history.db`), stops cleanly with Ctrl+C |
 | [`src/Chat.Client`](src/Chat.Client) | Console app | Connects to it: `Chat.Client [host] [port]` (default localhost 12000) |
 | [`src/NetworkingBasics`](src/NetworkingBasics) | Console app | The steps before the chat, in course order: threads running in parallel, one short-lived thread per name you type (stopped early with a `CancellationToken`), and an echo server written with the raw `Socket` API (`Bind`, `Listen`, `Accept`, `Receive`, `Send`) |
 | [`tests/*`](tests) | xUnit | Unit tests plus end-to-end tests that start a real server on a free port and connect real clients |
@@ -76,14 +82,22 @@ server and a client together.
   a lock. Messages are sent outside the lock, and writes to one connection go through a semaphore so two broadcasts
   never mix their bytes.
 - **Encoding**: UTF-8 on both sides, so accents and emoji arrive intact between Windows, Linux and macOS.
+- **Storage behind an interface**: the server only knows `IMessageStore`. The in-memory and the SQLite stores pass
+  the same contract tests, so either can be used (`--no-db` switches to memory).
+- **Safe SQL**: every query uses parameters, never text glued into the SQL, so a message such as
+  `'; DROP TABLE messages; --` is stored and searched as plain text. `LIKE` wildcards (`%`, `_`) are escaped, so
+  searching "100%" finds that exact text.
+- **Schema versioning**: the database records its schema version (`PRAGMA user_version`); the server creates the
+  tables on first run and refuses a database made by a newer version instead of corrupting it.
 - **Testable**: the chat room works with an `IChatMember` interface, so tests use fake members; the server accepts
-  port 0, so tests run a real server on whatever port is free.
+  port 0, so tests run a real server on whatever port is free, and one test restarts it to check the history is kept.
 
 ## Continuous integration
 
 - Every push and pull request builds the solution and runs the tests.
 - Pushing a version tag (`git tag v1.0.0 && git push origin v1.0.0`) publishes trimmed, self-contained executables
-  for Windows, Linux and macOS to Releases, after checking that the published chat actually works.
+  for Windows, Linux and macOS to Releases, after checking that the published chat actually works and that the
+  history survives a server restart.
 
 ## License
 

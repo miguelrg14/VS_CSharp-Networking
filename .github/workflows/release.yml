@@ -7,8 +7,6 @@ on:
   push:
     tags:
       - "v*"
-    branches:
-      - sqlite-history # TEMPORARY: verifies the build; removed before merging.
 
 permissions:
   contents: write # Needed to create the release.

@@ -143,12 +143,12 @@ public sealed class ChatServer : IAsyncDisposable
     }
 
     private Task SendHistoryAsync(TcpMember member, CancellationToken cancellationToken) =>
-        SendListAsync(member, Room.Store.Recent(ChatProtocol.HistorySize), count => $"last {count} messages", "(no messages yet)", cancellationToken);
+        SendListAsync(member, Room.Store.Recent(ChatProtocol.HistorySize), count => $"last {Messages(count)}", "(no messages yet)", cancellationToken);
 
     private Task SendSearchAsync(TcpMember member, string text, CancellationToken cancellationToken) =>
         text.Length == 0
             ? member.SendAsync($"Usage: {ChatProtocol.SearchCommand} <text>", cancellationToken)
-            : SendListAsync(member, Room.Store.Search(text, ChatProtocol.HistorySize), count => $"{count} messages containing \"{text}\"", $"No messages contain \"{text}\".", cancellationToken);
+            : SendListAsync(member, Room.Store.Search(text, ChatProtocol.HistorySize), count => $"{Messages(count)} containing \"{text}\"", $"No messages contain \"{text}\".", cancellationToken);
 
     private async Task SendStatsAsync(TcpMember member, CancellationToken cancellationToken)
     {
@@ -159,6 +159,8 @@ public sealed class ChatServer : IAsyncDisposable
                 : $"Most active: {string.Join(", ", stats.Select(s => $"{s.Author} ({s.Messages})"))}",
             cancellationToken).ConfigureAwait(false);
     }
+
+    private static string Messages(int count) => count == 1 ? "1 message" : $"{count} messages";
 
     /// <summary>Sends a header with the count, the messages with their time, and a closing line.</summary>
     private static async Task SendListAsync(
