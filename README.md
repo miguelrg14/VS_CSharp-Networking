@@ -14,17 +14,10 @@ Part 3 of my university C# work. Also see
 
 ## The chat
 
-```
-$ Chat.Client                         $ Chat.Client
-Welcome! Choose a nickname:           Welcome! Choose a nickname:
-ana                                   ana
-Hi ana! Online: ana.                  The nickname 'ana' is already in use. Try another one:
-(no messages yet)                     ben
-* ben joined the chat *               Hi ben! Online: ana, ben.
-hola a todos                          --- last 2 messages ---
-                                      * ana joined the chat *
-                                      ana: hola a todos
-```
+![The server and two clients: ana and ben chat, ben's first nickname is taken, then /who, /search and /stats](docs/chat-demo.gif)
+
+*The server log on top, two clients below. The nickname `ana` is already taken, so the second client picks `ben`;
+then they chat and try `/who`, `/search` and `/stats`.*
 
 - **Any number of clients**: each connection is served by its own asynchronous task, so a slow client never blocks the rest.
 - **Nicknames** are validated and unique (case-insensitive); a taken one is rejected and the client can try again.
@@ -46,6 +39,12 @@ hola a todos                          --- last 2 messages ---
 | [`src/Chat.Client`](src/Chat.Client) | Console app | Connects to it: `Chat.Client [host] [port]` (default localhost 12000) |
 | [`src/NetworkingBasics`](src/NetworkingBasics) | Console app | The steps before the chat, in course order: threads running in parallel, one short-lived thread per name you type (stopped early with a `CancellationToken`), and an echo server written with the raw `Socket` API (`Bind`, `Listen`, `Accept`, `Receive`, `Send`) |
 | [`tests/*`](tests) | xUnit | Unit tests plus end-to-end tests that start a real server on a free port and connect real clients |
+
+### Networking basics
+
+The exercises that lead to the chat. Here three threads run at the same time, so their lines interleave:
+
+![Three threads writing at different speeds, their lines interleaved](docs/threads-demo.gif)
 
 ## Download
 
